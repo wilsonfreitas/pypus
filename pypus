@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import pypus
+import numpy
+import getopt
+
+
+APP_NAME = 'pypus'
+AUTHOR   = 'Wilson Freitas'
+VERSION  = '0.5'
+URL      = 'http://aboutwilson.net/pypus'
+EMAIL    = 'wilson@aboutwilson.net'
+
+
+class GetOptions(object):
+    def __init__(self):
+        self.long_options = ['help']
+        self.options = 'h'
+        self.parse_options(sys.argv)
+
+    def parse_options(self, argv):
+        try:
+            opts, args = getopt.getopt(argv, self.options, self.long_options)
+        except getopt.GetoptError:
+            self.usage()
+            sys.exit(1)
+        
+        for opt, val in opts:
+            if opt in ['-h', '--help']:
+                self.usage()
+                sys.exit(0)
+        args = args[1:]
+        try:
+            self.code = args[0]
+        except IndexError:
+            self.usage()
+            sys.exit(1)
+        
+        try:
+            self.filename = args[1]
+        except IndexError:
+            self.filename = None
+        else:
+            if not os.path.isfile(self.filename):
+                sys.stderr.write('Error: %s is not a valid file\n' % self.filename)
+                self.usage()
+                sys.exit(1)
+
+    def usage(self):
+        sys.stderr.write('''\
+Usage: %(prog)s [OPTION] [CODE] [FILE]
+Try `%(prog)s --help' for more information.
+''' % { 'prog': APP_NAME } )
+    
+
+
+def main():
+    options = GetOptions()
+    input_file = sys.stdin
+    if options.filename:
+        input_file = options.filename
+    try:
+        S = numpy.loadtxt(input_file)
+    except KeyboardInterrupt:
+        sys.exit(1)
+    R = pypus.execute(S, options.code)
+    if type(R) is not numpy.ndarray:
+        R = numpy.array([R])
+    numpy.savetxt(sys.stdout, R)
+
+
+if __name__ == '__main__':
+    main()
+
