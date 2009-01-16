@@ -1,5 +1,24 @@
 #!/usr/bin/env python
 
+'''
+code
+. test arguments
+. test keywords arguments
+x implement parser_arg for: int, float, bool, None
+. implement parser_arg for sequences: tuple, list and dict
+. implement parser_arg for referenced package variables
+. macros: @logreturn = @log @diff; @macr(a,b) = @log @func(a) @mean(axis=b)
+. handle columns parameters	
+
+. load personal functions
+. define the path for personal functions
+. handle different outputs: arrays, numbers
+
+$ pypus "@abs @acf(20)" yhoo.dat
+
+$ cat yhoo.dat | pypus "@log @diff(5)" 
+'''
+
 
 def _is(s, func):
     try:
