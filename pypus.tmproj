@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>Dev/pypus/pypus.py</string>
+	<string>pypus.py</string>
 	<key>documents</key>
 	<array>
 		<dict>
@@ -21,39 +21,39 @@
 	<integer>317</integer>
 	<key>metaData</key>
 	<dict>
-		<key>Dev/pypus/pypus</key>
+		<key>pypus</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>0</integer>
+				<integer>18</integer>
 				<key>line</key>
-				<integer>10</integer>
+				<integer>66</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>0</integer>
+			<integer>34</integer>
 		</dict>
-		<key>Dev/pypus/pypus.py</key>
+		<key>pypus.py</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>0</integer>
+				<integer>4</integer>
 				<key>line</key>
-				<integer>86</integer>
+				<integer>82</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>73</integer>
+			<integer>36</integer>
 		</dict>
 	</dict>
 	<key>openDocuments</key>
 	<array>
-		<string>Dev/pypus/pypus.py</string>
-		<string>Dev/pypus/pypus</string>
+		<string>pypus.py</string>
+		<string>pypus</string>
 	</array>
 	<key>showFileHierarchyDrawer</key>
 	<true/>

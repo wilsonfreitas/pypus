@@ -17,7 +17,7 @@ EMAIL    = 'wilson@aboutwilson.net'
 class GetOptions(object):
     def __init__(self):
         self.long_options = ['help']
-        self.options = 'h'
+        self.options = 'hI:O:'
         self.parse_options(sys.argv)
 
     def parse_options(self, argv):
@@ -28,7 +28,11 @@ class GetOptions(object):
             sys.exit(1)
         
         for opt, val in opts:
-            if opt in ['-h', '--help']:
+            if opt is '-I':
+                self.input_separator = val
+            elif opt is '-O':
+                self.output_separator = val
+            elif opt in ['-h', '--help']:
                 self.usage()
                 sys.exit(0)
         args = args[1:]
