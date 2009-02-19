@@ -1,24 +1,5 @@
 #!/usr/bin/env python
 
-'''
-code
-. test arguments
-. test keywords arguments
-x implement parser_arg for: int, float, bool, None
-. implement parser_arg for sequences: tuple, list and dict
-. implement parser_arg for referenced package variables
-. macros: @logreturn = @log @diff; @macr(a,b) = @log @func(a) @mean(axis=b)
-. handle columns parameters	
-
-. load personal functions
-. define the path for personal functions
-. handle different outputs: arrays, numbers
-
-$ pypus "@abs @acf(20)" yhoo.dat
-
-$ cat yhoo.dat | pypus "@log @diff(5)" 
-'''
-
 
 def _is(s, func):
     try:
@@ -37,15 +18,47 @@ def is_float(s):
     return _is(s, float)
 
 
+class PypusParser(object):
+    """PypusParser"""
+    chunk_types = ['func', 'space', 'placehdr', 'lplacehdr', 'rplacehdr',
+                   'lparen', 'rparen', 'delim', 'number', 'sdelim', 'var']
+    
+    chunk_pattern_table = {
+        'func': re.compile(r'^(@[\w\.]+)'),
+        'space': re.compile(r'^(\s+)'),
+        'placehdr': re.compile(r'^\$[^{]'),
+        'lplacehdr': re.compile(r'^\${'),
+        'rplacehdr': re.compile(r'^}'),
+        'lparen': re.compile(r'^\('),
+        'rparen': re.compile(r'^\)'),
+        'delim': re.compile(r'^[,:=]'),
+        'number': re.compile(r'^(-?\d+\.?(\d+)?j?)'),
+        'sdelim': re.compile(r'^"'),
+        'var': re.compile(r'^([a-zA-Z_][a-zA-Z_0-9]+)')
+    }
+    
+    def __init__(self, code):
+        self.code = code
+#     
+# 
+# def pypus_parser(code):
+#     i = 0
+#     chunk = code[i:]
+#     while chunk:
+#         if re.match(r'^(@[a-zA-Z\d\._]+)', chunk):
+#             
+#         chunk = code[i:]
+
+
 def itertokens(code):
     i = code.find('@')
     j = code.find('@', i+1)
-
+    
     while j >= 0:
         yield code[i:j].strip()
         i = j
         j = code.find('@', j+1)
-
+        
     yield code[i:].strip()
 
 
