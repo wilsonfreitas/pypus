@@ -104,6 +104,8 @@ def main():
         sys.stdout.write('%.18e\n' % R)
     elif type(R) is int:
         sys.stdout.write('%d\n' % R)
+    elif R is None:
+        pass
     else:
         sys.stdout.write('%s\n' % str(R))
 

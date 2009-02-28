@@ -229,20 +229,29 @@ class Pypus(object):
     
     def execute(self, S, code):
         """Execute pypus code"""
+        # import time
         # create code and apply macros
+        # t1 = time.time()
         pypus_code = PypusCode(code)
         pypus_code.apply_macros(self.macros)
+        # print 'Pypus code - apply macros - elapsed time = %.2f' % (time.time() - t1)
         # parse
+        # t1 = time.time()
         parser = PypusParser()
         func_stack = parser.parse(pypus_code)
+        # print 'Pypus code - parse - elapsed time = %.2f' % (time.time() - t1)
         # resolve func names
+        # t1 = time.time()
         modNames = set(self.modules)
         for func in func_stack:
             func.resolve(modNames)
+        # print 'Pypus code - name resolution - elapsed time = %.2f' % (time.time() - t1)
         # execute functions
         while func_stack:
             func = func_stack.pop(0)
+            # t1 = time.time()
             S = func(S)
+            # print 'Pypus execution - %s - elapsed time = %.2f' % (func.func_name, time.time() - t1)
         
         return S
 
