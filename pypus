@@ -5,6 +5,7 @@ import sys
 import pypus
 import numpy
 import getopt
+from ConfigParser import ConfigParser
 
 
 APP_NAME = 'pypus'
@@ -60,7 +61,27 @@ Try `%(prog)s --help' for more information.
     
 
 
+def load_config_file():
+    """docstring for options"""
+    rc_filename = os.path.expanduser('~/.pypusrc')
+    config = ConfigParser()
+    if not os.path.isfile(rc_filename):        
+        ini_filename = os.path.join(sys.prefix, 'config', 'pypus.ini')
+        ini_file = open(ini_filename)
+        rc_file = open(rc_filename, 'w')
+        rc_file.write(ini_file.read())
+        rc_file.close()
+        ini_file.close()
+    config.read([rc_filename])
+    pypus_home = os.path.expanduser(config.get('setup', 'pypus_home'))
+    if not os.path.isdir(pypus_home):
+        os.mkdir(pypus_home)
+    return config
+
+
+
 def main():
+    config = load_config_file()
     options = GetOptions()
     input_file = sys.stdin
     if options.filename:
@@ -69,10 +90,23 @@ def main():
         S = numpy.loadtxt(input_file)
     except KeyboardInterrupt:
         sys.exit(1)
-    R = pypus.execute(S, options.code)
-    if type(R) is not numpy.ndarray:
-        R = numpy.array([R])
-    numpy.savetxt(sys.stdout, R)
+    # pypus setup
+    pypus_home = os.path.expanduser(config.get('setup', 'pypus_home'))
+    sys.path.append(pypus_home)
+    pypus_modules = [mod[:-3] for mod in os.listdir(pypus_home) if mod[-3:] == '.py']
+    pypus_modules += config.get('setup', 'modules').split()
+    session = pypus.Pypus(pypus_modules, config.items('macros'))
+    # execute pypus
+    R = session.execute(S, options.code)
+    if type(R) in (numpy.ndarray, numpy.core.defmatrix.matrix):
+        numpy.savetxt(sys.stdout, R)
+    elif type(R) is float:
+        sys.stdout.write('%.18e\n' % R)
+    elif type(R) is int:
+        sys.stdout.write('%d\n' % R)
+    else:
+        sys.stdout.write('%s\n' % str(R))
+
 
 
 if __name__ == '__main__':

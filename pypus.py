@@ -1,117 +1,157 @@
 #!/usr/bin/env python
 
-
-def _is(s, func):
-    try:
-        func(s)
-    except ValueError:
-        return False
-    else:
-        return True
+import re
+import types
 
 
-def is_int(s):
-    return _is(s, int)
+class NameNotResolvedException(Exception):
+    """docstring for NameNotResolvedException"""
+    def __init__(self, message):
+        super(NameNotResolvedException, self).__init__(message)
+        self.message = message
+        
 
-
-def is_float(s):
-    return _is(s, float)
-
+class PypusCode(object):
+    """docstring for PypusCode"""
+    def __init__(self, code):
+        self.preproc_code = code
+        self.posproc_code = ''
+        
+    def apply_macros(self, macros):
+        for macro, value in macros:
+            if macro in self.preproc_code:
+                self.posproc_code = self.preproc_code.replace(macro, value)
+                return
+        self.posproc_code = self.preproc_code
+    
+    def __getitem__(self, key):
+        if self.posproc_code is not '':
+            return self.posproc_code[key]
+        else:
+            return self.preproc_code[key]
+        
 
 class PypusParser(object):
     """PypusParser"""
-    chunk_types = ['func', 'space', 'placehdr', 'lplacehdr', 'rplacehdr',
-                   'lparen', 'rparen', 'delim', 'number', 'sdelim', 'var']
+    def __init__(self):
+        self.chunk_types = [
+            ('ignore', re.compile(r'^[ \t]'), lambda *args: None),
+            ('func', re.compile(r'^(@[\w\.]+)'), self._handle_func),
+            ('placehdr', re.compile(r'^\$(\{([^\\\]\[]|(\\.))+\}|\d+)*'), self._handle_placehdr),
+            ('lparen', re.compile(r'^\('), self._handle_lparen),
+            ('rparen', re.compile(r'^\)'), self._handle_rparen),
+            ('lbrak', re.compile(r'^\{'), self._handle_lparen),
+            ('rbrak', re.compile(r'^\}'), self._handle_rparen),
+            ('lsqbrak', re.compile(r'^\['), self._handle_lparen),
+            ('rsqbrak', re.compile(r'^\]'), self._handle_rparen),
+            ('delim', re.compile(r'^,'), self._handle_delim),
+            ('pykwargs', re.compile(r'^([a-zA-Z_][a-zA-Z0-9_]*=)'), self._handle_pykwargs),
+            ('pystr', re.compile(r'\"([^\\"]|(\\.))*\"'), self._handle_pyargs),
+            ('pyargs', re.compile(r'^([^,\)\( \t\{\}\[\]]+)'), self._handle_pyargs),
+        ]
     
-    chunk_pattern_table = {
-        'func': re.compile(r'^(@[\w\.]+)'),
-        'space': re.compile(r'^(\s+)'),
-        'placehdr': re.compile(r'^\$[^{]'),
-        'lplacehdr': re.compile(r'^\${'),
-        'rplacehdr': re.compile(r'^}'),
-        'lparen': re.compile(r'^\('),
-        'rparen': re.compile(r'^\)'),
-        'delim': re.compile(r'^[,:=]'),
-        'number': re.compile(r'^(-?\d+\.?(\d+)?j?)'),
-        'sdelim': re.compile(r'^"'),
-        'var': re.compile(r'^([a-zA-Z_][a-zA-Z_0-9]+)')
-    }
-    
-    def __init__(self, code):
-        self.code = code
-#     
-# 
-# def pypus_parser(code):
-#     i = 0
-#     chunk = code[i:]
-#     while chunk:
-#         if re.match(r'^(@[a-zA-Z\d\._]+)', chunk):
-#             
-#         chunk = code[i:]
-
-
-def itertokens(code):
-    i = code.find('@')
-    j = code.find('@', i+1)
-    
-    while j >= 0:
-        yield code[i:j].strip()
-        i = j
-        j = code.find('@', j+1)
-        
-    yield code[i:].strip()
-
-
-def import_func(className, modName=None, module=None):
-    if not module:
-        if not modName:
-            fields = className.split('.')
-            modName = '.'.join(fields[:-1])
-            className = fields[-1]
-        if modName is '':
-            modName = '__main__'
-        module = __import__(modName, globals(), locals(), [className], -1)
-        
-    return getattr(module, className)
-
-
-class Placeholder(object):
-    def __init__(self, arg):
-        self.arg = arg
-        if arg is '$':
-            self.index = None
-        elif arg.startswith('${') and arg.endswith('}'):
-            _range = arg[1:].strip('{}')
-            if _range.find(':') > 0:
-                begin, end = [int(i) for i in _range.split(':')]
-                self.index = tuple(xrange(begin, end))
+    def parse(self, code):
+        """docstring for parse"""
+        self.current_function = None
+        self.functions = []
+        self.action_stack = []
+        self.current_kwkey = None
+        self.current_arg = None
+        i = 0
+        k = 0
+        while k < len(self.chunk_types):
+            chunk_type = self.chunk_types[k]
+            code_part = code[i:]
+            m = chunk_type[1].match(code_part)
+            if m:
+                i += len(m.group())
+                # print '%-15s [%s]' % (chunk_type[0], m.group())
+                chunk_type[2](code_part, m)
+                k = 0
             else:
-                self.index = tuple(eval('[' + _range + ']'))
+                k += 1
+        return self.functions
+    
+    def _handle_func(self, code_part, regex):
+        """docstring for _handle_func"""
+        self.current_function = Function(regex.group())
+        self.functions.append(self.current_function)
+    
+    def _handle_placehdr(self, code_part, regex):
+        """docstring for _handle_placehdr"""
+        self.current_function.args.append(Placeholder(regex.group()))
+        self.current_function.has_placeholder = True
+    
+    def _handle_lparen(self, code_part, regex):
+        """docstring for _handle_lparen"""
+        if len(self.action_stack) == 0:
+            self.action_stack.append('function-args')
         else:
-            self.index = int(arg[1:])
+            self.action_stack.append('py-arg')
+            self.current_arg = regex.group()
+    
+    def _handle_rparen(self, code_part, regex):
+        """docstring for _handle_lparen"""
+        action = self.action_stack.pop()
+        if action == 'py-arg':
+            self.current_arg += regex.group()
+            self._define_arg()
+    
+    def _handle_delim(self, code_part, regex):
+        """docstring for _handle_lparen"""
+        action = self.action_stack[-1]
+        if action == 'py-arg':
+            self.current_arg += ','
+    
+    def _handle_pykwargs(self, code_part, regex):
+        """docstring for _handle_pykwargs"""
+        text = regex.group()
+        self.current_kwkey = text[:-1]
+    
+    def _handle_pyargs(self, code_part, regex):
+        """docstring for _handle_pyargs"""
+        action = self.action_stack[-1]
+        arg = regex.group()
+        
+        if action == 'py-arg':
+            self.current_arg += arg
+        elif action == 'function-args':
+            self.current_arg = arg
+            self._define_arg()
+    
+    def _define_arg(self):
+        """docstring for define_arg"""
+        value = eval(self.current_arg)
+        if self.current_kwkey is not None:
+            self.current_function.kwargs[self.current_kwkey] = value
+            self.current_kwkey = None
+        else:
+            self.current_function.args.append(value)
     
 
 
-class FunctionWrapper(object):
-    def __init__(self, code):
+class Function(object):
+    def __init__(self, func_name):
         self.has_placeholder = False
-        self.code = code
-        func_name = code[1:]
-        par_index = func_name.find('(')
-        if par_index > 0:
-            par = func_name[par_index:]
-            func_name = func_name[:par_index]
-        else:
-            par = None
-        self.func = import_func(func_name)
-        if par:
-            par = par.strip('()')
-            # this parse of arguments isn't prepared to receive sequence types
-            self.args   = self.parse_args(s.strip() for s in par.split(',') if s.find('=') < 0)
-            self.kwargs = self.parse_kwargs(s.strip() for s in par.split(',') if s.find('=') > 0)
-        else:
-            self.args   = []
-            self.kwargs = {}
+        self.args = []
+        self.kwargs = {}
+        self.func_name = func_name[1:]
+        self.func = None
+    
+    def resolve(self, modNames=set()):
+        """docstring for resolve"""
+        try:
+            self.func = import_func(self.func_name)
+        except (AttributeError, ImportError, TypeError):
+            for modName in modNames:
+                try:
+                    self.func = import_func(self.func_name, modName)
+                    break
+                except (AttributeError, ImportError, TypeError):
+                    pass
+        if self.func is None:
+            raise NameNotResolvedException("%s couldn't be resolved, check modules variable in the "
+                                           "configuration file." % (self.func_name) )
     
     def _replace_placeholder(self, S, arg):
         """docstring for _replace_placeholder"""
@@ -129,52 +169,82 @@ class FunctionWrapper(object):
         else:
             return arg
     
-    def parse_arg(self, arg):
-        """Parse atomic arguments passed to wrapped functions"""
-        if is_int(arg):
-            return int(arg)
-        elif is_float(arg):
-            return float(arg)
-        elif arg in ('True', 'False', 'None'):
-            return eval(arg)
-        elif arg.startswith('$'):
-            self.has_placeholder = True
-            return Placeholder(arg)
-        else:
-            return arg
-    
-    def parse_args(self, args):
-        """Generates a tuple with the parsed arguments"""
-        return tuple(self.parse_arg(arg) for arg in args)
-    
-    def parse_kwarg(self, kwarg):
-        """Generates a tuple with key value pairs separated by '='"""
-        key, val = kwarg.split('=')
-        key.strip()
-        val.strip()
-        return key, self.parse_arg(val)
-    
-    def parse_kwargs(self, kwargs):
-        """Generates a dict with the keyword arguments"""
-        return dict(self.parse_kwarg(kwarg) for kwarg in kwargs)
-    
     def __call__(self, S):
         """Execute the function"""
-        # return self.func(S)
         if self.has_placeholder:
             args = [self._replace_placeholder(S, arg) for arg in self.args]
-            return self.func(*args, **self.kwargs)
+            kwargs = dict([(k, self._replace_placeholder(S, v)) for k,v in self.kwargs.iteritems()])
+            return self.func(*args, **kwargs)
         else:
             return self.func(S, *self.args, **self.kwargs)
     
-            
-def execute(S, code):
-    """Execute pypus code"""
-    func_stack = [FunctionWrapper(token) for token in itertokens(code)]
-    func_stack.reverse()
+
+
+class Placeholder(object):
+    def __init__(self, arg):
+        self.arg = arg
+        if arg is '$':
+            self.index = None
+        elif arg.startswith('${') and arg.endswith('}'):
+            _range = arg[1:].strip('{}')
+            if _range.find(':') > 0:
+                begin, end = [int(i) for i in _range.split(':')]
+                self.index = tuple(xrange(begin, end))
+            else:
+                self.index = tuple(eval('[' + _range + ']'))
+        else:
+            self.index = int(arg[1:])
     
-    while func_stack:
-        func = func_stack.pop()
-        S = func(S)
+    def __str__(self):
+        """docstring for __str__"""
+        return self.arg
+    
+    def __repr__(self):
+        """docstring for __repr__"""
+        return self.arg
+    
+
+
+def import_func(className, modName=None):
+    if not modName:
+        fields = className.split('.')
+        modName = '.'.join(fields[:-1])
+        className = fields[-1]
+    if modName is '':
+        modName = '__main__'
+    module = __import__(modName, globals(), locals(), [className], -1)
+    func = getattr(module, className)
+    if type(func) is types.ModuleType:
+        raise TypeError("Not callable object found")
+    else:
+        return func
+
+
+
+class Pypus(object):
+    """docstring for Pypus"""
+    def __init__(self, modules, macros):
+        self.modules = modules
+        self.macros = macros
+    
+    def execute(self, S, code):
+        """Execute pypus code"""
+        # create code and apply macros
+        pypus_code = PypusCode(code)
+        pypus_code.apply_macros(self.macros)
+        # parse
+        parser = PypusParser()
+        func_stack = parser.parse(pypus_code)
+        # resolve func names
+        modNames = set(self.modules)
+        for func in func_stack:
+            func.resolve(modNames)
+        # execute functions
+        while func_stack:
+            func = func_stack.pop(0)
+            S = func(S)
         
-    return S
+        return S
+
+
+
