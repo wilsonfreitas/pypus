@@ -18,8 +18,9 @@ EMAIL    = 'wilson@aboutwilson.net'
 class GetOptions(object):
     def __init__(self):
         self.long_options = ['help']
-        self.options = 'hI:O:'
-        self.parse_options(sys.argv)
+        self.options = 'hgI:O:'
+        self.generator = False
+        self.parse_options(sys.argv[1:])
 
     def parse_options(self, argv):
         try:
@@ -29,14 +30,15 @@ class GetOptions(object):
             sys.exit(1)
         
         for opt, val in opts:
-            if opt is '-I':
+            if opt == '-I':
                 self.input_separator = val
-            elif opt is '-O':
+            elif opt == '-O':
                 self.output_separator = val
+            elif opt == '-g':
+                self.generator = True
             elif opt in ['-h', '--help']:
                 self.usage()
                 sys.exit(0)
-        args = args[1:]
         try:
             self.code = args[0]
         except IndexError:
@@ -56,7 +58,7 @@ class GetOptions(object):
     def usage(self):
         sys.stderr.write('''\
 Usage: %(prog)s [OPTION] [CODE] [FILE]
-Try `%(prog)s --help' for more information.
+Try `%(prog)s -h' for more information.
 ''' % { 'prog': APP_NAME } )
     
 
@@ -83,21 +85,22 @@ def load_config_file():
 def main():
     config = load_config_file()
     options = GetOptions()
-    input_file = sys.stdin
-    if options.filename:
-        input_file = options.filename
-    try:
-        S = numpy.loadtxt(input_file)
-    except KeyboardInterrupt:
-        sys.exit(1)
     # pypus setup
     pypus_home = os.path.expanduser(config.get('setup', 'pypus_home'))
     sys.path.append(pypus_home)
     pypus_modules = [mod[:-3] for mod in os.listdir(pypus_home) if mod[-3:] == '.py']
     pypus_modules += config.get('setup', 'modules').split()
     session = pypus.Pypus(pypus_modules, config.items('macros'))
-    # execute pypus
-    R = session.execute(S, options.code)
+    if options.generator:
+        R = session.execute(options.code)
+    else:
+        # handling input 
+        input_file = sys.stdin
+        if options.filename:
+            input_file = options.filename
+        S = numpy.loadtxt(input_file)
+        # execute pypus
+        R = session.execute(options.code, S)
     if type(R) in (numpy.ndarray, numpy.core.defmatrix.matrix):
         numpy.savetxt(sys.stdout, R)
     elif type(R) is float:

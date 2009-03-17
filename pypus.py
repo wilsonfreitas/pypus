@@ -169,9 +169,11 @@ class Function(object):
         else:
             return arg
     
-    def __call__(self, S):
+    def __call__(self, S=None):
         """Execute the function"""
-        if self.has_placeholder:
+        if S is None:
+            return self.func(*self.args, **self.kwargs)
+        elif self.has_placeholder:
             args = [self._replace_placeholder(S, arg) for arg in self.args]
             kwargs = dict([(k, self._replace_placeholder(S, v)) for k,v in self.kwargs.iteritems()])
             return self.func(*args, **kwargs)
@@ -227,7 +229,7 @@ class Pypus(object):
         self.modules = modules
         self.macros = macros
     
-    def execute(self, S, code):
+    def execute(self, code, S=None):
         """Execute pypus code"""
         # import time
         # create code and apply macros
@@ -247,11 +249,16 @@ class Pypus(object):
             func.resolve(modNames)
         # print 'Pypus code - name resolution - elapsed time = %.2f' % (time.time() - t1)
         # execute functions
-        while func_stack:
+        if S is None:
             func = func_stack.pop(0)
-            # t1 = time.time()
-            S = func(S)
-            # print 'Pypus execution - %s - elapsed time = %.2f' % (func.func_name, time.time() - t1)
+            S = func()
+            while func_stack:
+                func = func_stack.pop(0)
+                S = func(S)
+        else:
+            while func_stack:
+                func = func_stack.pop(0)
+                S = func(S)
         
         return S
 
