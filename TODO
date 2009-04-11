@@ -1,7 +1,1 @@
 
-. parameterless macros: @logreturn = @log @diff
-. parameterized macros: @macr(a,b) = @log @func(a) @mean(axis=b)
-. enable personal loaddata functions
-. enable command line properties: -Dproperty=bla (property = "bla"), -Dproperty (property = 1)
-. call of not defined properties raises exception
-. properties can be declared in .pypusrc [properties] section

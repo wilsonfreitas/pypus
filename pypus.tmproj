@@ -21,33 +21,19 @@
 	<integer>317</integer>
 	<key>metaData</key>
 	<dict>
-		<key>TODO</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>1</integer>
-				<key>line</key>
-				<integer>7</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>0</integer>
-		</dict>
 		<key>pypus</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>21</integer>
+				<integer>0</integer>
 				<key>line</key>
-				<integer>32</integer>
+				<integer>130</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>22</integer>
+			<integer>85</integer>
 		</dict>
 		<key>pypus.ini</key>
 		<dict>
@@ -68,14 +54,14 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>0</integer>
+				<integer>38</integer>
 				<key>line</key>
-				<integer>257</integer>
+				<integer>293</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>222</integer>
+			<integer>51</integer>
 		</dict>
 		<key>pypusTest.py</key>
 		<dict>
@@ -91,13 +77,27 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
+		<key>pypusrc.py</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>47</integer>
+				<key>line</key>
+				<integer>7</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
 	</dict>
 	<key>openDocuments</key>
 	<array>
-		<string>TODO</string>
-		<string>pypus.py</string>
 		<string>pypus</string>
+		<string>pypus.py</string>
 		<string>pypus.ini</string>
+		<string>pypusrc.py</string>
 		<string>pypusTest.py</string>
 	</array>
 	<key>showFileHierarchyDrawer</key>
