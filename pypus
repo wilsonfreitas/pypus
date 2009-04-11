@@ -2,10 +2,14 @@
 
 import os
 import sys
-import pypus
-import numpy
 import getopt
 from ConfigParser import ConfigParser
+
+import numpy as np
+import numpy.ma as ma
+import scikits.timeseries as ts
+
+import pypus as pp
 
 
 APP_NAME = 'pypus'
@@ -18,8 +22,10 @@ EMAIL    = 'wilson@aboutwilson.net'
 class GetOptions(object):
     def __init__(self):
         self.long_options = ['help']
-        self.options = 'hgI:O:'
+        self.options = 'hgyI:O:L:P:'
         self.generator = False
+        self.data_loader_code = ''
+        self.pypus_path = ''
         self.parse_options(sys.argv[1:])
 
     def parse_options(self, argv):
@@ -28,12 +34,15 @@ class GetOptions(object):
         except getopt.GetoptError:
             self.usage()
             sys.exit(1)
-        
         for opt, val in opts:
             if opt == '-I':
                 self.input_separator = val
             elif opt == '-O':
                 self.output_separator = val
+            elif opt == '-L':
+                self.data_loader_code = val
+            elif opt == '-P':
+                self.pypus_path = val
             elif opt == '-g':
                 self.generator = True
             elif opt in ['-h', '--help']:
@@ -90,7 +99,7 @@ def main():
     sys.path.append(pypus_home)
     pypus_modules = [mod[:-3] for mod in os.listdir(pypus_home) if mod[-3:] == '.py']
     pypus_modules += config.get('setup', 'modules').split()
-    session = pypus.Pypus(pypus_modules, config.items('macros'))
+    session = pp.Pypus(pypus_modules, config.items('macros'))
     if options.generator:
         R = session.execute(options.code)
     else:
@@ -98,11 +107,16 @@ def main():
         input_file = sys.stdin
         if options.filename:
             input_file = options.filename
-        S = numpy.loadtxt(input_file)
+        if not options.data_loader_code == '':
+            S = session.execute(options.data_loader_code, input_file)
+        else:
+            S = session.execute(config.get('setup', 'default_loader'), input_file)
         # execute pypus
         R = session.execute(options.code, S)
-    if type(R) in (numpy.ndarray, numpy.core.defmatrix.matrix):
-        numpy.savetxt(sys.stdout, R)
+    if type(R) in (np.ndarray, np.core.defmatrix.matrix):
+        np.savetxt(sys.stdout, R)
+    elif ma.isMA(R):
+        ts.tofile(R, sys.stdout)
     elif type(R) is float:
         sys.stdout.write('%.18e\n' % R)
     elif type(R) is int:
