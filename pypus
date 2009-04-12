@@ -66,8 +66,16 @@ class GetOptions(object):
 
     def usage(self):
         sys.stderr.write('''\
-Usage: %(prog)s [OPTION] [CODE] [FILE]
-Try `%(prog)s -h' for more information.
+Usage: 
+    %(prog)s [OPTION] [CODE] FILE
+    %(prog)s [OPTION] [CODE] < FILE
+Options:
+    -Isep   input separator
+    -Osep   output separator
+    -Lcode  code for data loading
+    -Ppath  specify pypus path
+    -g      code generates data
+    -h      help
 ''' % { 'prog': APP_NAME } )
     
 
