@@ -26,6 +26,10 @@ class NameNotResolvedException(Exception):
     
 
 
+class PypusParserError(Exception):
+    pass
+
+
 class PypusCode(object):
     """docstring for PypusCode"""
     def __init__(self, code):
@@ -100,7 +104,7 @@ class PypusParser(object):
     
     def _handle_func(self, code_part, regex):
         """docstring for _handle_func"""
-        self.current_function = Function(regex.group())
+        self.current_function = PypusFunction(regex.group())
         self.functions.append(self.current_function)
     
     def _handle_placehdr(self, code_part, regex):
@@ -161,11 +165,7 @@ class PypusParser(object):
     
 
 
-class PypusParserError(Exception):
-    pass
-
-
-class Function(object):
+class PypusFunction(object):
     def __init__(self, func_name):
         self.has_placeholder = False
         self.args = []
