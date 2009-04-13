@@ -27,7 +27,7 @@ class GetOptions(object):
         self.data_loader_code = ''
         self.pypus_path = ''
         self.parse_options(sys.argv[1:])
-
+    
     def parse_options(self, argv):
         try:
             opts, args = getopt.getopt(argv, self.options, self.long_options)
@@ -63,7 +63,7 @@ class GetOptions(object):
                 sys.stderr.write('Error: %s is not a valid file\n' % self.filename)
                 self.usage()
                 sys.exit(1)
-
+    
     def usage(self):
         sys.stderr.write('''\
 Usage: 
@@ -92,21 +92,40 @@ def load_config_file():
         rc_file.close()
         ini_file.close()
     config.read([rc_filename])
-    pypus_home = os.path.expanduser(config.get('setup', 'pypus_home'))
-    if not os.path.isdir(pypus_home):
-        os.mkdir(pypus_home)
+    # pypus_home = os.path.expanduser(config.get('setup', 'pypus_home'))
+    # if not os.path.isdir(pypus_home):
+    #     os.mkdir(pypus_home)
     return config
 
+
+def get_pypus_path(config):
+    """docstring for pypus_path"""
+    pypus_path = []
+    for d in config.get('setup', 'pypus_path').split(':'):
+        if d.startswith('~'):
+            d = os.path.expanduser(d)
+        d = os.path.join(d, 'pypus')
+        if os.path.isdir(d):
+            pypus_path.append(d)
+    return pypus_path
+
+
+def get_pypus_modules(config):
+    pypus_path = get_pypus_path(config)
+    pypus_modules = []
+    for _dir in pypus_path:
+        pypus_modules += [mod[:-3] for mod in os.listdir(_dir) if mod[-3:] == '.py']
+    pypus_modules += config.get('setup', 'modules').split()
+    return pypus_modules
 
 
 def main():
     config = load_config_file()
     options = GetOptions()
     # pypus setup
-    pypus_home = os.path.expanduser(config.get('setup', 'pypus_home'))
-    sys.path.append(pypus_home)
-    pypus_modules = [mod[:-3] for mod in os.listdir(pypus_home) if mod[-3:] == '.py']
-    pypus_modules += config.get('setup', 'modules').split()
+    pypus_path = get_pypus_path(config)
+    sys.path += pypus_path
+    pypus_modules = get_pypus_modules(config)
     session = pp.Pypus(pypus_modules, config.items('macros'))
     if options.generator:
         R = session.execute(options.code)
