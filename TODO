@@ -1,1 +1,12 @@
+. pypusworkspace.py or workspace.pypus - file proliferation, easy to delivery
+	- $PYPUS_PATH can control proliferation and it's good idea to use functions from other projects
+. $PYPUS_HOME - no proliferation, hard to delivery
 
+we can have both approaches:
+. atomic workspace to handle specific project functions
+. $PYPUS_HOME to act as a commom area from functions shared among projects
+
+. local pypusrc?
+	- variables can be defined into workspace
+	- workspace is python file
+	- pypusrc is a python file
