@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>pypus</string>
+	<string>pypus.ini</string>
 	<key>documents</key>
 	<array>
 		<dict>
@@ -21,6 +21,20 @@
 	<integer>317</integer>
 	<key>metaData</key>
 	<dict>
+		<key>TODO</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>12</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
 		<key>pypus</key>
 		<dict>
 			<key>caret</key>
@@ -33,16 +47,16 @@
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>80</integer>
+			<integer>37</integer>
 		</dict>
 		<key>pypus.ini</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>0</integer>
+				<integer>2</integer>
 				<key>line</key>
-				<integer>9</integer>
+				<integer>13</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
@@ -54,14 +68,14 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>0</integer>
+				<integer>26</integer>
 				<key>line</key>
-				<integer>269</integer>
+				<integer>56</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>0</integer>
+			<integer>27</integer>
 		</dict>
 		<key>pypusTest.py</key>
 		<dict>
@@ -96,6 +110,7 @@
 	<array>
 		<string>pypus</string>
 		<string>pypus.py</string>
+		<string>TODO</string>
 		<string>pypus.ini</string>
 		<string>pypusrc.py</string>
 		<string>pypusTest.py</string>
@@ -103,6 +118,6 @@
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{371, 0}, {909, 778}}</string>
+	<string>{{376, 0}, {904, 778}}</string>
 </dict>
 </plist>
